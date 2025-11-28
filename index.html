@@ -2623,6 +2623,7 @@ ${expensesText}
             }
             if(target.classList.contains('delete-product')){
                 if(!confirm(`Yakin hapus ${product.name}?`)) return;
+                target.disabled = true;
                 await deleteDoc(doc(db, 'users', userId, 'products', id));
                 showToast('Produk dihapus');
                 await cacheData();
@@ -2673,6 +2674,8 @@ ${expensesText}
                 e.target.reset();
                 await cacheData();
                 renderInventory();
+            renderInventory();
+            if(document.getElementById('etalase-view').classList.contains('active')) renderProducts();
             } catch(error){ showToast('Gagal menyimpan bahan.', 'error'); }
         });
 
@@ -2685,11 +2688,11 @@ ${expensesText}
             const id = deleteBtn.dataset.id;
             if (!confirm(`Yakin hapus ${materialsCache.get(id).name}?`)) return;
 
+            deleteBtn.disabled = true;
             await deleteDoc(doc(db, 'users', userId, 'materials', id));
             showToast('Bahan dihapus');
             await cacheData();
             renderInventory();
-            if(document.getElementById('etalase-view').classList.contains('active')) renderProducts();
         });
 
         document.getElementById('add-purchase-form').addEventListener('submit', async e => {
