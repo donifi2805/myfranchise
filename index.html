@@ -2,11 +2,9 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <!-- MODIFIKASI: Viewport awal diatur di sini, akan diubah oleh JavaScript secara dinamis -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FranchiseKu - Admin Management</title>
     
-    <!-- MODIFIKASI: Menambahkan link ke manifest.json untuk PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
@@ -333,11 +331,52 @@
         .summary-card h4 { font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 2px; font-weight: 500; border: none; padding: 0; text-transform: uppercase; }
         .summary-card p { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px 0; }
-        .modal-content { background-color: var(--bg-secondary); padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color); }
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-color: rgba(0, 0, 0, 0.8); 
+            backdrop-filter: blur(5px); 
+            display: none; justify-content: center; align-items: center; 
+            z-index: 1000; padding: 20px 0; 
+        }
+        .modal-content { 
+            background-color: var(--bg-secondary); padding: 25px; border-radius: 12px; 
+            width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color); 
+        }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-close { font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); background: none; border: none; line-height: 1;}
         
+        /* CSS Untuk Modal Konfirmasi Kustom yang Baru */
+        #custom-confirm-modal .modal-content {
+            max-width: 400px;
+            text-align: center;
+        }
+        #custom-confirm-modal .modal-icon {
+            font-size: 3rem; 
+            margin-bottom: 15px; 
+            color: var(--accent-red);
+        }
+        #custom-confirm-modal h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        #custom-confirm-modal p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+        #custom-confirm-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: stretch;
+        }
+        #custom-confirm-actions .action-button {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+        }
+        /* End: CSS Modal Konfirmasi Kustom */
+
         #toast-container{ position:fixed; top:15px; left:15px; right: 15px; width: auto; z-index:10005; display:flex; flex-direction:column; align-items:center; gap: 15px; pointer-events:none; }
         .toast { background-color: var(--bg-tertiary); color: var(--text-primary); padding: 12px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; border-left: 4px solid; transition: all 0.3s ease; opacity: 0; transform: translateY(-20px); }
         .toast.show { opacity: 1; transform: translateY(0); }
@@ -502,7 +541,18 @@
     </div>
 
     <div id="toast-container"></div>
-
+    
+    <div id="custom-confirm-modal" class="modal-overlay">
+        <div class="modal-content">
+            <i id="custom-confirm-icon" class="modal-icon ph-bold ph-warning-circle"></i>
+            <h2 id="custom-confirm-title">Konfirmasi Aksi</h2>
+            <p id="custom-confirm-message">Apakah Anda yakin ingin melakukan aksi ini?</p>
+            <div id="custom-confirm-actions">
+                <button id="custom-confirm-cancel-btn" class="action-button btn-secondary">Batal</button>
+                <button id="custom-confirm-ok-btn" class="action-button btn-red">Lanjutkan</button>
+            </div>
+        </div>
+    </div>
     <div id="auth-wrapper">
         <div id="auth-container">
             
@@ -556,7 +606,6 @@
             </div>
     </div>
 
-    <!-- === STRUKTUR PANEL ADMIN === -->
     <div id="admin-panel">
         <nav class="admin-navigation">
             <h2><i class="ph-bold ph-user-gear"></i> Panel Admin</h2>
@@ -643,15 +692,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data pengguna akan dirender di sini oleh JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <!-- === AKHIR PANEL ADMIN === -->
-
-
     <div id="app-layout">
         <main class="main-content">
             <nav class="top-navigation">
@@ -884,7 +929,6 @@
                     <h4>Info Akun</h4>
                     <p>Username: <strong id="setting-username">-</strong></p>
                     <p>Email: <strong id="setting-email">-</strong></p>
-                    <!-- FIX: Menambahkan ID yang hilang ke elemen P -->
                     <p id="setting-account-status">Status Akun: 
                         <strong class="status-display">
                             <i class="ph-bold"></i>
@@ -1116,6 +1160,48 @@
     let currentUserData = null; 
     let allUsersCache = [];
     let expiryCountdownInterval = null;
+    
+    // VARIABEL UNTUK MODAL KONFIRMASI KUSTOM
+    let customConfirmResolver;
+    const customConfirmModal = document.getElementById('custom-confirm-modal');
+    const customConfirmTitle = document.getElementById('custom-confirm-title');
+    const customConfirmMessage = document.getElementById('custom-confirm-message');
+    const customConfirmOkBtn = document.getElementById('custom-confirm-ok-btn');
+    const customConfirmCancelBtn = document.getElementById('custom-confirm-cancel-btn');
+    const customConfirmIcon = document.getElementById('custom-confirm-icon');
+
+
+    // FUNGSI MODAL KONFIRMASI KUSTOM
+    function showCustomConfirm(title, message, okText = 'Hapus', cancelText = 'Batal', iconClass = 'ph-bold ph-warning-circle', okBtnClass = 'btn-red') {
+        return new Promise(resolve => {
+            customConfirmResolver = resolve;
+            customConfirmTitle.textContent = title;
+            customConfirmMessage.textContent = message;
+            customConfirmOkBtn.textContent = okText;
+            customConfirmCancelBtn.textContent = cancelText;
+            customConfirmIcon.className = 'modal-icon ' + iconClass;
+            customConfirmOkBtn.className = 'action-button ' + okBtnClass; 
+            customConfirmModal.style.display = 'flex';
+        });
+    }
+
+    customConfirmOkBtn.addEventListener('click', () => {
+        customConfirmModal.style.display = 'none';
+        if (customConfirmResolver) {
+            customConfirmResolver(true);
+            customConfirmResolver = null;
+        }
+    });
+
+    customConfirmCancelBtn.addEventListener('click', () => {
+        customConfirmModal.style.display = 'none';
+        if (customConfirmResolver) {
+            customConfirmResolver(false);
+            customConfirmResolver = null;
+        }
+    });
+
+    // END FUNGSI MODAL KONFIRMASI KUSTOM
 
     function updateViewport(mode) {
         let viewport = document.querySelector("meta[name=viewport]");
@@ -1229,7 +1315,7 @@
 
             thermalPrinterDevice = await navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: ['49535343-fe7d-4ae5-8fa9-9fafd205e455']
+                optionalServices: ['49535543-fe7d-4ae5-8fa9-9fafd205e455']
             });
             
             connectBtn.textContent = 'Menghubungkan...';
@@ -2496,7 +2582,17 @@ ${expensesText}
             
             if (deleteBtn) {
                 const txId = deleteBtn.dataset.id;
-                if (!confirm('Yakin ingin membatalkan transaksi ini? Stok bahan baku yang terpakai akan dikembalikan.')) return;
+                
+                const confirmed = await showCustomConfirm(
+                    'Batalkan Transaksi', 
+                    'Yakin ingin membatalkan transaksi ini? Stok bahan baku yang terpakai akan dikembalikan.',
+                    'Batalkan Transaksi',
+                    'Jangan Batalkan',
+                    'ph-bold ph-x-circle', 
+                    'btn-red'
+                );
+
+                if (!confirmed) return;
                 
                 deleteBtn.disabled = true;
                 try {
@@ -2622,7 +2718,17 @@ ${expensesText}
                 formContainer.scrollIntoView({ behavior: 'smooth' });
             }
             if(target.classList.contains('delete-product')){
-                if(!confirm(`Yakin hapus ${product.name}?`)) return;
+                const confirmed = await showCustomConfirm(
+                    'Hapus Produk', 
+                    `Yakin hapus produk "${product.name}"? Produk yang dihapus tidak dapat dipulihkan.`,
+                    'Hapus Permanen',
+                    'Batal',
+                    'ph-bold ph-trash',
+                    'btn-red'
+                );
+
+                if(!confirmed) return;
+                
                 target.disabled = true;
                 await deleteDoc(doc(db, 'users', userId, 'products', id));
                 showToast('Produk dihapus');
@@ -2686,7 +2792,18 @@ ${expensesText}
             if(!userId) return;
 
             const id = deleteBtn.dataset.id;
-            if (!confirm(`Yakin hapus ${materialsCache.get(id).name}?`)) return;
+            const material = materialsCache.get(id);
+
+            const confirmed = await showCustomConfirm(
+                'Hapus Bahan Baku', 
+                `Yakin hapus bahan baku "${material.name}"? Ini juga akan menghapus semua riwayat pembelian bahan ini.`,
+                'Hapus Permanen',
+                'Batal',
+                'ph-bold ph-trash',
+                'btn-red'
+            );
+
+            if (!confirmed) return;
 
             deleteBtn.disabled = true;
             await deleteDoc(doc(db, 'users', userId, 'materials', id));
@@ -2753,8 +2870,18 @@ ${expensesText}
             const { purchaseId, materialId, quantity, price } = cancelBtn.dataset;
             const qtyNum = Number(quantity);
             const priceNum = Number(price);
+            const material = materialsCache.get(materialId);
 
-            if (!confirm('Yakin ingin membatalkan pembelian ini? Stok dan HPP akan dikembalikan seperti semula.')) return;
+            const confirmed = await showCustomConfirm(
+                'Batalkan Pembelian', 
+                `Yakin ingin membatalkan pembelian ${material?.name || 'ini'} (Jumlah: ${qtyNum})? Stok dan HPP akan dikembalikan seperti semula.`,
+                'Batalkan Pembelian',
+                'Jangan Batalkan',
+                'ph-bold ph-x-circle',
+                'btn-red'
+            );
+            
+            if (!confirmed) return;
             
             cancelBtn.disabled = true;
             try {
@@ -2802,6 +2929,7 @@ ${expensesText}
             else { currentOrder.push({ productId, quantity }); }
             renderCart();
             form.reset();
+            form.querySelector('#sale-product').value = '';
             form.querySelector('#sale-quantity').value = 1;
         });
         document.getElementById('cart-items-list').addEventListener('click', (e) => {
@@ -2994,7 +3122,16 @@ ${expensesText}
         });
 
         document.getElementById('download-all-recap').addEventListener('click', async (e) => {
-             if (!confirm("Mengunduh semua data mungkin memakan waktu lama. Lanjutkan?")) return;
+             const confirmed = await showCustomConfirm(
+                'Unduh Semua Data', 
+                'Mengunduh semua data mungkin memakan waktu lama. Lanjutkan?',
+                'Lanjutkan Unduh',
+                'Batal',
+                'ph-bold ph-cloud-arrow-down',
+                'btn-purple'
+            );
+
+            if (!confirmed) return;
              
              const btn = e.target;
              btn.disabled = true;
@@ -3211,24 +3348,33 @@ ${expensesText}
             const userId = document.getElementById('edit-user-id').value;
             const username = document.getElementById('edit-user-username').value;
             if (!userId) return;
+            
+            const confirmed = await showCustomConfirm(
+                'Hapus Pengguna', 
+                `ANDA YAKIN ingin menghapus pengguna "${username}"? Tindakan ini tidak dapat diurungkan dan akan menghapus semua data terkait (penjualan, stok, dll).`,
+                'Hapus Permanen',
+                'Batal',
+                'ph-bold ph-user-minus',
+                'btn-red'
+            );
 
-            if (confirm(`ANDA YAKIN ingin menghapus pengguna "${username}"? Tindakan ini tidak dapat diurungkan dan akan menghapus semua data terkait (penjualan, stok, dll).`)) {
-                const btn = e.target;
-                btn.disabled = true;
-                btn.textContent = 'Menghapus...';
-                try {
-                    await deleteDoc(doc(db, 'users', userId));
-                    showToast(`Pengguna ${username} telah dihapus.`, 'success');
-                    document.getElementById('edit-user-modal').style.display = 'none';
-                    await fetchAndCacheAllUsers();
-                    renderAdminStats();
-                    renderUsersTable();
-                } catch (error) {
-                    showToast(`Gagal menghapus: ${error.message}`, 'error');
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = 'Hapus Pengguna';
-                }
+            if (!confirmed) return;
+            
+            const btn = e.target;
+            btn.disabled = true;
+            btn.textContent = 'Menghapus...';
+            try {
+                await deleteDoc(doc(db, 'users', userId));
+                showToast(`Pengguna ${username} telah dihapus.`, 'success');
+                document.getElementById('edit-user-modal').style.display = 'none';
+                await fetchAndCacheAllUsers();
+                renderAdminStats();
+                renderUsersTable();
+            } catch (error) {
+                showToast(`Gagal menghapus: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Hapus Pengguna';
             }
         });
 
